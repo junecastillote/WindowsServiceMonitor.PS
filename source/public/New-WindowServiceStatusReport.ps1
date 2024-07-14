@@ -11,7 +11,7 @@ Function New-WindowServiceStatusReport {
 
         [Parameter()]
         [int]
-        $MaximumHistoryCount = 30,
+        $MaxNumberOfReportsToKeep = 30,
 
         [Parameter(Mandatory)]
         [string]
@@ -74,8 +74,8 @@ Function New-WindowServiceStatusReport {
     $message_body | Out-File -LiteralPath $report_html_file -Force -Confirm:$false
 
     ## Housekeeping
-    if ($MaximumHistoryCount -gt 0) {
-        if ($history_to_delete = Get-ChildItem "$($OutputDirectory)\WindowsServiceMonitor.PS*report.html" -File | Sort-Object CreationTime -Descending | Select-Object -Skip $MaximumHistoryCount) {
+    if ($MaxNumberOfReportsToKeep -gt 0) {
+        if ($history_to_delete = Get-ChildItem "$($OutputDirectory)\WindowsServiceMonitor.PS*report.html" -File | Sort-Object CreationTime -Descending | Select-Object -Skip $MaxNumberOfReportsToKeep) {
             $history_to_delete | Remove-Item -Confirm:$false -Force -ErrorAction Continue
         }
     }
