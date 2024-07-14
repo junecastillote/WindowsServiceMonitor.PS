@@ -30,12 +30,10 @@ Function Start-WindowsServiceMonitor {
         $isValid = $false
     }
 
-    if ($config.MaximumHistoryCount -lt 1) {
-        "MaximumHistoryCount must be greater than 0." | SayError
+    if ($config.MaxNumberOfReportsToKeep -lt 1) {
+        "MaxNumberOfReportsToKeep must be greater than 0." | SayError
         $isValid = $false
     }
-
-
 
     ## Validate SMTP-related parameters
     if ($config.SendEmailNotificationMethod -eq 'Smtp') {
@@ -90,10 +88,12 @@ Function Start-WindowsServiceMonitor {
     "Monitoring interval = [$($config.IntervalInSeconds) seconds]" | SayInfo
     "Notify non-running only? = [$($config.NotifyIfNotRunningOnly)]" | SayInfo
     "Email notification method = [$($config.SendEmailNotificationMethod)]" | SayInfo
+    "Max # of reports to keep = [$($config.MaxNumberOfReportsToKeep)]" | SayInfo
 
     do {
         "=============================================================================" | Say
-        $result = New-WindowServiceStatusReport -Service $config.Service -OutputDirectory $config.OutputDirectory -OrganizationName $config.OrganizationName -MaximumHistoryCount $config.MaximumHistoryCount
+        "Service Status Check" | Say
+        $result = New-WindowServiceStatusReport -Service $config.Service -OutputDirectory $config.OutputDirectory -OrganizationName $config.OrganizationName -MaxNumberOfReportsToKeep $config.MaxNumberOfReportsToKeep
 
 
         # if ($config.SendEmailNotificationMethod -eq 'Smtp') {
@@ -102,17 +102,20 @@ Function Start-WindowsServiceMonitor {
         if ($result.ServiceNotRunningCount) {
             $smtp_splat.MailPriority = 'High'
             $smtp_splat.MailSubject = "[CRITICAL] | Windows Service Monitor detected [$($result.ServiceNotRunningCount)] services are not running!"
-            $result.ServiceNotRunning | ForEach-Object {
-                "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo -Color Red
-            }
         }
 
         if (!$result.ServiceNotRunningCount) {
             $smtp_splat.MailPriority = 'Low'
             $smtp_splat.MailSubject = "[NORMAL] | Windows Service Monitor"
-            $result.ServiceRunning | ForEach-Object {
-                "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo
-            }
+        }
+
+        # Display service status on the screen
+        $result.ServiceNotRunning | ForEach-Object {
+            "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo -Color Red
+        }
+
+        $result.ServiceRunning | ForEach-Object {
+            "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo
         }
 
         "Monitored services not running = [$($result.ServiceNotRunningCount)]" | SayInfo
@@ -124,10 +127,9 @@ Function Start-WindowsServiceMonitor {
                 $result | Send-WindowsServiceReportBySmtp @smtp_splat
             }
         }
-        # }
 
         ## Housekeeping
-        if ($history_to_delete = Get-ChildItem "$($config.OutputDirectory)\WindowsServiceMonitor.PS*report.html" -File | Sort-Object CreationTime -Descending | Select-Object -Skip $($config.MaximumHistoryCount)) {
+        if ($history_to_delete = Get-ChildItem "$($config.OutputDirectory)\WindowsServiceMonitor.PS*report.html" -File | Sort-Object CreationTime -Descending | Select-Object -Skip $($config.MaxNumberOfReportsToKeep)) {
             $history_to_delete | Remove-Item -Confirm:$false -Force -ErrorAction Continue
         }
 
