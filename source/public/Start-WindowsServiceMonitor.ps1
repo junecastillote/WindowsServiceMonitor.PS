@@ -17,12 +17,35 @@ Function Start-WindowsServiceMonitor {
         return $null
     }
 
+
+
     # Validate configuration
     $isValid = $true
 
-    if (!$config.Service) {
-        "The list of services to monitor is missing." | SayError
-        $isValid = $false
+    if ($config.UseCustomServiceListFile) {
+        if (!$config.CustomServiceListFile) {
+            "The custom service list file is not specified in the CustomServiceListFile configuration." | SayError
+            $isValid = $false
+        }
+
+        if ($config.CustomServiceListFile) {
+            try {
+                $custom_service_list = Get-Content $config.CustomServiceListFile -ErrorAction Stop
+                $config.Service = $custom_service_list
+            }
+            catch {
+                "Failed to import the custom service list file." | SayError
+                $_.Exception.Message | SayError
+                $isValid = $false
+            }
+        }
+    }
+
+    if (!($config.UseCustomServiceListFile)) {
+        if (!$config.Service) {
+            "The list of services to monitor is missing." | SayError
+            $isValid = $false
+        }
     }
 
     if (!$config.OrganizationName) {
@@ -81,14 +104,18 @@ Function Start-WindowsServiceMonitor {
         return $null
     }
 
-
     "Configuration" | Say
+    "Use custom service list file input? = [$($config.UseCustomServiceListFile)]" | SayInfo
+    if ($config.UseCustomServiceListFile -and $config.CustomServiceListFile) {
+        "Custom service list file = [$($config.CustomServiceListFile)]" | SayInfo
+    }
     "Services monitored = [$($config.Service -join ',')]" | SayInfo
     "Organization name = [$($config.OrganizationName)]" | SayInfo
     "Monitoring interval = [$($config.IntervalInSeconds) seconds]" | SayInfo
     "Notify non-running only? = [$($config.NotifyIfNotRunningOnly)]" | SayInfo
     "Email notification method = [$($config.SendEmailNotificationMethod)]" | SayInfo
     "Max # of reports to keep = [$($config.MaxNumberOfReportsToKeep)]" | SayInfo
+
 
     do {
         "=============================================================================" | Say
@@ -124,7 +151,14 @@ Function Start-WindowsServiceMonitor {
         if ($config.SendEmailNotificationMethod -eq 'Smtp') {
             if ($config.NotifyIfNotRunningOnly -and $result.ServiceNotRunningCount -gt 0) {
                 "Sending alert notification..." | SayInfo
-                $result | Send-WindowsServiceReportBySmtp @smtp_splat
+                try {
+                    $result | Send-WindowsServiceReportBySmtp @smtp_splat -ErrorAction Stop
+                    "Done." | SayInfo
+                }
+                catch {
+                    "Failed to send email notification." | SayError
+                    $_.Exception.Message | SayError
+                }
             }
         }
 
