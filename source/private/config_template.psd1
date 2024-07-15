@@ -8,9 +8,16 @@
 # Template version 1.0
 #
 @{
-    # Specify the list of services.
+
+    # Indicate whether to use an external text file as input for services list.
+    # UseCustomServiceListFile = $TRUE, means to use the input file specified in CustomServiceListFile = 'input file here'
+    # UseCustomServiceListFile = $FALSE, means to use the list of services in the
+    UseCustomServiceListFile    = $false
+    # Specify the file path containing the list of services to monitor if UseCustomServiceListFile = $TRUE.
+    CustomServiceListFile       = ''
+
+    # List the services to monitor if UseCustomServiceListFile = $FALSE
     # Use the service name or display name or a mix of both.
-    # Required: True
     Service                     = @()
 
     # Specify the interval in which the service check repeats.
