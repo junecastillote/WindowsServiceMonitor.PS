@@ -90,6 +90,8 @@ Function New-WindowServiceStatusReport {
             ServiceReportFile      = $report_html_file
             ServiceReportHtml      = $($message_body).ToString()
             PSTypeName             = 'WindowsServiceMonitorResult'
+            ComputerName           = $env:COMPUTERNAME
+            OrganizationName       = $OrganizationName
         }
     )
     $visible_properties = [string[]]@('ServiceNotRunning', 'ServiceRunning', 'ServiceReportFile')
