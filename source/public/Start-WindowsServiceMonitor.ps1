@@ -139,11 +139,11 @@ Function Start-WindowsServiceMonitor {
             "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo -Color Red
         }
 
-        $result.ServiceRunning | ForEach-Object {
-            "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo
-        }
+        # $result.ServiceRunning | ForEach-Object {
+        #     "[$($_.DisplayName)] : [$($_.Status)]" | SayInfo
+        # }
 
-        "Monitored services not running = [$($result.ServiceNotRunningCount)]" | SayInfo
+        "Monitored services not running = [$($result.ServiceNotRunningCount)]" | SayInfo -Color Red
         "Report file @ [$($result.ServiceReportFile)]" | SayInfo
 
         if ($config.SendEmailNotificationMethod -eq 'Smtp') {
@@ -156,6 +156,27 @@ Function Start-WindowsServiceMonitor {
                 catch {
                     "Failed to send email notification." | SayError
                     $_.Exception.Message | SayError
+                }
+            }
+        }
+
+        if ($config.SendTeamsNotification -and $result.ServiceNotRunningCount -and $config.NotifyIfNotRunningOnly) {
+            foreach ($url in $config.TeamsWebHookUrl) {
+                $card = New-WindowsServiceStatusCard -InputObject $result
+                try {
+                    $Params = @{
+                        "URI"         = $url
+                        "Method"      = 'POST'
+                        "Body"        = $card | ConvertTo-Json -Depth 10
+                        "ContentType" = 'application/json'
+                    }
+                    SayInfo "Posting alert to Teams..."
+                    SayInfo "$($url)"
+                    Invoke-RestMethod @Params -ErrorAction Stop
+                }
+                catch {
+                    SayError "Failed to post to Teams [$($url)]."
+                    SayError "$($_.Exception.Message)"
                 }
             }
         }
