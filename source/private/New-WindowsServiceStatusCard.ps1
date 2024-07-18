@@ -17,20 +17,20 @@ Function New-WindowsServiceStatusCard {
             $InputObject
         )
 
-        $factHeader = [pscustomobject][ordered]@{
-            type  = "Container"
-            style = "emphasis"
-            bleed = $true
-            items = @(
-                $([pscustomobject][ordered]@{
-                        type      = 'TextBlock'
-                        wrap      = $true
-                        separator = $true
-                        weight    = 'Bolder'
-                        text      = "Windows Service Monitor detected [$($InputObject.ServiceNotRunningCount)] services are not running!"
-                    } )
-            )
-        }
+        # $factHeader = [pscustomobject][ordered]@{
+        #     type  = "Container"
+        #     style = "emphasis"
+        #     bleed = $true
+        #     items = @(
+        #         $([pscustomobject][ordered]@{
+        #                 type      = 'TextBlock'
+        #                 wrap      = $true
+        #                 separator = $true
+        #                 weight    = 'Bolder'
+        #                 text      = "Windows Service Monitor detected [$($InputObject.ServiceNotRunningCount)] services are not running!"
+        #             } )
+        #     )
+        # }
 
         $factSet = [pscustomobject][ordered]@{
             type      = 'FactSet'
@@ -52,7 +52,7 @@ Function New-WindowsServiceStatusCard {
         'vComputerName', $InputObject.ComputerName
     )
     # $teamsAdaptiveCard = (Get-Content (($moduleInfo.ModuleBase.ToString()) + '\source\private\TeamsConsolidated.json') -Raw | ConvertFrom-Json)
-    $teamsAdaptiveCard = ($jsonPayload | ConvertFrom-Json)
+    $teamsAdaptiveCard = ($jsonPayload | ConvertFrom-Json -Depth 10)
     foreach ($item in $InputObject.ServiceNotRunning) {
         $teamsAdaptiveCard.attachments[0].content.body += (New-FactItem -InputObject $item)
     }
