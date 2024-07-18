@@ -77,4 +77,10 @@
         MailCc         = @()
         MailBcc        = @()
     }
+
+    # Indicate whether the alert is posted to a Teams webhook
+    # If $true, the Teams notification will be posted.
+    SendTeamsNotification       = $true
+    # Specify the Teams Webhook URLs. This is required if "SendTeamsNotification=$true"
+    TeamsWebHookUrl             = @()
 }
