@@ -49,7 +49,7 @@
     # Specify the type if email method to use.
     # * NONE = Email notification is disabled.
     # * SMTP = Email notification via SMTP relay (SMTP configuration will be required.)
-    # * MSGRAPH = Email notification via Microsoft Graph API (Microsoft Graph API PowerShell module is required.)
+    # * MSGRAPH = Email notification via Microsoft Graph API. This is a future feature placeholder. Not yet in use.
     # NOTE: This module does not handle the connection and authentication to Microsoft Graph API PowerShell.
     SendEmailNotificationMethod = 'NONE'
 
@@ -80,7 +80,7 @@
 
     # Indicate whether the alert is posted to a Teams webhook
     # If $true, the Teams notification will be posted.
-    SendTeamsNotification       = $true
+    SendTeamsNotification       = $false
     # Specify the Teams Webhook URLs. This is required if "SendTeamsNotification=$true"
     TeamsWebHookUrl             = @()
 }
