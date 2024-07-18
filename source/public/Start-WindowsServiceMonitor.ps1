@@ -17,8 +17,6 @@ Function Start-WindowsServiceMonitor {
         return $null
     }
 
-
-
     # Validate configuration
     $isValid = $true
 
