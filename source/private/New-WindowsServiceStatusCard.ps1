@@ -52,7 +52,9 @@ Function New-WindowsServiceStatusCard {
         'vComputerName', $InputObject.ComputerName
     )
     # $teamsAdaptiveCard = (Get-Content (($moduleInfo.ModuleBase.ToString()) + '\source\private\TeamsConsolidated.json') -Raw | ConvertFrom-Json)
-    $teamsAdaptiveCard = ($jsonPayload | ConvertFrom-Json -Depth 10)
+
+    $teamsAdaptiveCard = ($jsonPayload | ConvertFrom-Json)
+
     foreach ($item in $InputObject.ServiceNotRunning) {
         $teamsAdaptiveCard.attachments[0].content.body += (New-FactItem -InputObject $item)
     }
